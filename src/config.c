@@ -35,6 +35,9 @@
 /*----------------------------------------------------------------------------*/
 
 static ParodusCfg parodusCfg;
+#if defined(FEATURE_RDKB_MULTIWAN)
+pthread_mutex_t config_mut = PTHREAD_MUTEX_INITIALIZER;
+#endif
 static unsigned int rsa_algorithms = 
 	(1<<alg_rs256) | (1<<alg_rs384) | (1<<alg_rs512);
 /*----------------------------------------------------------------------------*/
@@ -848,4 +851,32 @@ void loadParodusCfg(ParodusCfg * config,ParodusCfg *cfg)
     }
 }
 
+#if defined(FEATURE_RDKB_MULTIWAN)
+/**
+ * @brief Update webpa_interface_used with the active WAN interface name.
+ *
+ * Concurrency: protected by config_mut.
+ * Input validation: rejects NULL/empty names and names that do not fit the buffer.
+ *
+ * @param[in] value  WAN interface name (e.g. from WanManager CurrentActiveInterface).
+ */
+void setWebpaInterface(const char *value)
+{
+    if (value == NULL || value[0] == '\0') {
+        ParodusError("setWebpaInterface: invalid interface\n");
+        return;
+    }
+
+    if (strlen(value) >= sizeof(get_parodus_cfg()->webpa_interface_used)) {
+        ParodusError("setWebpaInterface: interface name too long: %s\n", value);
+        return;
+    }
+
+    pthread_mutex_lock(&config_mut);
+    parStrncpy(get_parodus_cfg()->webpa_interface_used, value,
+               sizeof(get_parodus_cfg()->webpa_interface_used));
+    pthread_mutex_unlock(&config_mut);
+    ParodusInfo("webpa_interface_used set to %s\n", value);
+}
+#endif /* FEATURE_RDKB_MULTIWAN */
 

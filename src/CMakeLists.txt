@@ -23,6 +23,9 @@ else()
 set(SOURCES ${SOURCES} seshat_interface_stub.c)
 endif (ENABLE_SESHAT)
 
+if (FEATURE_RDKB_MULTIWAN)
+set(SOURCES ${SOURCES} wan_interface_rbus.c)
+endif (FEATURE_RDKB_MULTIWAN)
 
 add_executable(parodus ${SOURCES})
 
@@ -52,6 +55,10 @@ endif (FEATURE_DNS_QUERY)
 if (ENABLE_SESHAT)
 target_link_libraries (parodus -llibseshat)
 endif (ENABLE_SESHAT)
+
+if (FEATURE_RDKB_MULTIWAN)
+target_link_libraries (parodus -lrbus -lrbuscore -lrtMessage)
+endif (FEATURE_RDKB_MULTIWAN)
 
 
 install (TARGETS parodus DESTINATION bin)

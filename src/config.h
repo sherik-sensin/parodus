@@ -24,6 +24,8 @@
 #ifndef _CONFIG_H_ 
 #define _CONFIG_H_
 
+#include <pthread.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -120,6 +122,21 @@ typedef struct
 /*----------------------------------------------------------------------------*/
 
 void loadParodusCfg(ParodusCfg * config,ParodusCfg *cfg);
+
+#if defined(FEATURE_RDKB_MULTIWAN)
+/**
+ * @brief Update webpa_interface_used with the active WAN interface name.
+ *
+ * Concurrency: protected by config_mut.
+ * Input validation: rejects NULL/empty names and names that do not fit the buffer.
+ *
+ * @param[in] value  WAN interface name (e.g. from WanManager CurrentActiveInterface).
+ */
+void setWebpaInterface(const char *value);
+
+/** Mutex protecting ParodusCfg fields updated at runtime (e.g. webpa_interface_used). */
+extern pthread_mutex_t config_mut;
+#endif /* FEATURE_RDKB_MULTIWAN */
 
 /**
  * parse command line arguments and create config structure

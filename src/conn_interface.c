@@ -26,6 +26,9 @@
 #include "ParodusInternal.h"
 #include "config.h"
 #include "upstream.h"
+#if defined(FEATURE_RDKB_MULTIWAN)
+#include "wan_interface_rbus.h"
+#endif
 #include "downstream.h"
 #include "thread_tasks.h"
 #include "nopoll_helpers.h"
@@ -98,7 +101,12 @@ void createSocketConnection(void (* initKeypress)())
     #endif
 
     EventHandler();
-    
+#if defined(FEATURE_RDKB_MULTIWAN)
+    if (0 != subscribeCurrentActiveInterfaceEvent())
+    {
+        ParodusError("Failed to subscribe CurrentActiveInterface; using configured webpa_interface_used\n");
+    }
+#endif
     set_server_list_null (&server_list);
     create_conn_rtn = createNopollConnection(ctx, &server_list);
     if(!create_conn_rtn)
